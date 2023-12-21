@@ -78,9 +78,9 @@ require_once "database/config.php";
                 // Affichage des messages
                 while ($row = mysqli_fetch_assoc($result)) {
                     echo '<article class="posts">';
-                    echo '<span style="font-weight: bold"><img src="data:image/jpeg;base64,' . base64_encode( $row['PP'] ) . '" width="32px" height="32px"> ' . $row['Pseudo'] . '</span>';
+                    echo '<span style="font-weight: bold"><img src="data:image/png;base64,' . base64_encode( $row['PP'] ) . '" width="32px" height="32px"> ' . $row['Pseudo'] . '</span>';
                     echo '<br><br>' . $row['message'];
-                    echo '<br><img src="data:image/jpeg;base64,' . base64_encode( $row['image'] ) . '">';
+                    echo '<br><img src="data:image/png;base64,' . base64_encode( $row['image'] ) . '">';
                     echo '</article>';
                 }
                 // Libération des résultats
