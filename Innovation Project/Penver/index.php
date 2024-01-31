@@ -23,14 +23,48 @@ require_once "database/config.php";
             </div>
             <ul>
                 <?php 
-                # Ne pas afficher toutes les options si l'on n'est pas connecté
+                // Ne pas afficher toutes les options si l'on n'est pas connecté
                 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== TRUE) {
                     echo '<li><i class="bi-person-circle" style="font-size: 18px; font-style: normal;"> <a href="login.php">Se connecter...</a></i></li>';
                 } 
                 else
                 {
-                    echo '<li><span style="font-size: 18px; font-style: normal;">
-                    <img src="images/avatar.png" width="30px;" height="30px;"> <a href="user/' . $_SESSION["Pseudo"] . '.php">' . $_SESSION["Pseudo"] . '</a></span></li>';
+                    // Obtenir l'avatar de l'utilisateur actuellement connecté
+                    $userId = $_SESSION["id_user"];
+                    
+                    $query = "SELECT PP FROM user WHERE id_user = ?";
+                    $stmt = mysqli_prepare($link, $query);
+                    
+                    if ($stmt) {
+                        // Bind the parameter
+                        mysqli_stmt_bind_param($stmt, "i", $userId);
+                        
+                        // Execute the query
+                        mysqli_stmt_execute($stmt);
+                        
+                        // Bind the result variable
+                        mysqli_stmt_bind_result($stmt, $userPP);
+                        
+                        // Fetch the result
+                        mysqli_stmt_fetch($stmt);
+                        
+                        // Check if the value is not null
+                        if ($userPP !== null) {
+                            $encodedPP = base64_encode($userPP);
+                            echo '<li><span style="font-size: 18px; font-style: normal;">
+                            <img src="data:image/png;base64,' . $encodedPP . '" width="32px" height="32px"> <a href="user/' . $_SESSION["Pseudo"] . '.php">' . $_SESSION["Pseudo"] . '</a></span></li>';
+                        } else {
+                            echo '<li><span style="font-size: 18px; font-style: normal;">
+                            <img src="images/avatar.png" width="30px;" height="30px;"> <a href="user/' . $_SESSION["Pseudo"] . '.php">' . $_SESSION["Pseudo"] . '</a></span></li>';
+                        }
+                        
+                        // Close the statement
+                        mysqli_stmt_close($stmt);
+                    } else {
+                        // Handle the case where the statement preparation fails
+                        echo "Error preparing statement";
+                    }
+                    
                     echo '<li><i class="bi-door-open-fill" style="font-size: 18px; font-style: normal;"> <a href="logout.php">Se déconnecter...</a></i></li>';
                     echo '<li><i class="bi-bell-fill" style="font-size: 18px; font-style: normal;"> Notifications</i></li>';
                     echo '<li><i class="bi-chat-left-dots-fill" style="font-size: 18px; font-style: normal;"> Messages</i></li>';
@@ -71,7 +105,7 @@ require_once "database/config.php";
         <!-- Posts -->
         <?php
             // Récupération des messages depuis la base de données
-            $query = "SELECT message, id_utilisateur, image, PP, Pseudo FROM feed_global NATURAL JOIN user";
+            $query = "SELECT message, id_utilisateur, image, PP, Pseudo FROM feed_global INNER JOIN user ON feed_global.id_utilisateur = user.id_user GROUP BY feed_global.id_message";
             $result = mysqli_query($link, $query);
 
             if ($result) {
